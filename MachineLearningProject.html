@@ -9,7 +9,7 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="date" content="2014-11-10" />
+<meta name="date" content="2014-11-21" />
 
 <title>MachineLearningProject</title>
 
@@ -53,7 +53,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 
 <div id="header">
 <h1 class="title">MachineLearningProject</h1>
-<h4 class="date"><em>November 10, 2014</em></h4>
+<h4 class="date"><em>November 21, 2014</em></h4>
 </div>
 
 
@@ -90,7 +90,7 @@ dim(training)</code></pre>
 </div>
 <div id="algorithm" class="section level2">
 <h2>Algorithm</h2>
-<p>I tried several methods to model the training set but found that the <strong>rpart</strong> method had very low accuracy and the <strong>treebag (bagging)</strong> method ….. The model with the best accuracy (although with a much longer processing time) was the random forest model. I will use a random forest model with a 5-fold cross validation.</p>
+<p>I tried several methods to model the training set (all with cross validation) but found that the <strong>rpart</strong> method had very low accuracy and the <strong>treebag (bagging)</strong> method and <strong>gbm (boosting with trees)</strong> method had very good accurarcy but still lower than random forest. Since it is the model with the best accuracy (although with a much longer processing time), I will use a random forest model with a 5-fold cross validation.</p>
 <ol style="list-style-type: decimal">
 <li>random forest - excellent accuracy</li>
 </ol>
@@ -113,8 +113,8 @@ modelFit</code></pre>
 ## 
 ##   mtry  Accuracy  Kappa  Accuracy SD  Kappa SD
 ##    2    1         1      0.002        0.003   
-##   27    1         1      0.003        0.003   
-##   52    1         1      0.003        0.004   
+##   27    1         1      0.002        0.002   
+##   52    1         1      0.002        0.002   
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 27.</code></pre>
@@ -127,19 +127,138 @@ finMod</code></pre>
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 27
 ## 
-##         OOB estimate of  error rate: 0.61%
+##         OOB estimate of  error rate: 0.69%
 ## Confusion matrix:
 ##      A    B    C    D    E class.error
-## A 4183    2    0    0    0   0.0004779
-## B   18 2821    7    2    0   0.0094803
-## C    0   14 2543   10    0   0.0093494
-## D    0    1   25 2384    2   0.0116086
-## E    0    0    3    6 2697   0.0033259</code></pre>
+## A 4178    6    1    0    0    0.001673
+## B   22 2817    8    1    0    0.010885
+## C    0   16 2544    7    0    0.008960
+## D    0    1   26 2384    1    0.011609
+## E    0    2    4    6 2694    0.004435</code></pre>
 <ol start="2" style="list-style-type: decimal">
-<li><p>rpart - runs very quickly but has poor accuracy</p></li>
-<li><p>treebag (bagging) - great accuracy but lower than random forest</p></li>
-<li><p>gbm (boosting with trees) - good accuracy</p></li>
+<li>rpart - runs very quickly but has poor accuracy</li>
 </ol>
+<pre class="r"><code>set.seed(557)
+
+modelFit2 &lt;- train(training$classe ~ ., data=training, method=&quot;rpart&quot;, trControl = trainControl(method = &quot;cv&quot;, number = 5))</code></pre>
+<pre><code>## Loading required package: rpart</code></pre>
+<pre class="r"><code>print(modelFit2$finalModel)</code></pre>
+<pre><code>## n= 14718 
+## 
+## node), split, n, loss, yval, (yprob)
+##       * denotes terminal node
+## 
+##  1) root 14718 10530 A (0.28 0.19 0.17 0.16 0.18)  
+##    2) roll_belt&lt; 130.5 13484  9312 A (0.31 0.21 0.19 0.18 0.11)  
+##      4) pitch_forearm&lt; -33.95 1181     7 A (0.99 0.0059 0 0 0) *
+##      5) pitch_forearm&gt;=-33.95 12303  9305 A (0.24 0.23 0.21 0.2 0.12)  
+##       10) magnet_dumbbell_y&lt; 436.5 10392  7461 A (0.28 0.18 0.24 0.19 0.11)  
+##         20) roll_forearm&lt; 122.5 6477  3844 A (0.41 0.18 0.18 0.17 0.061) *
+##         21) roll_forearm&gt;=122.5 3915  2625 C (0.076 0.18 0.33 0.23 0.18) *
+##       11) magnet_dumbbell_y&gt;=436.5 1911   948 B (0.035 0.5 0.043 0.23 0.19) *
+##    3) roll_belt&gt;=130.5 1234    13 E (0.011 0 0 0 0.99) *</code></pre>
+<pre class="r"><code>modelFit2</code></pre>
+<pre><code>## CART 
+## 
+## 14718 samples
+##    52 predictor
+##     5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (5 fold) 
+## 
+## Summary of sample sizes: 11775, 11775, 11773, 11774, 11775 
+## 
+## Resampling results across tuning parameters:
+## 
+##   cp    Accuracy  Kappa  Accuracy SD  Kappa SD
+##   0.03  0.5       0.4    0.04         0.06    
+##   0.06  0.4       0.2    0.06         0.09    
+##   0.11  0.3       0.1    0.04         0.06    
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was cp = 0.03199.</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>treebag (bagging) - great accuracy but lower than random forest</li>
+</ol>
+<pre class="r"><code>set.seed(558)
+
+library(ipred)
+library(plyr)
+
+modelFit3 &lt;- train(training$classe ~ ., data=training, method=&quot;treebag&quot;, trControl = trainControl(method = &quot;cv&quot;, number = 5))
+print(modelFit3$finalModel)</code></pre>
+<pre><code>## 
+## Bagging classification trees with 25 bootstrap replications</code></pre>
+<pre class="r"><code>modelFit3</code></pre>
+<pre><code>## Bagged CART 
+## 
+## 14718 samples
+##    52 predictor
+##     5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (5 fold) 
+## 
+## Summary of sample sizes: 11774, 11775, 11774, 11774, 11775 
+## 
+## Resampling results
+## 
+##   Accuracy  Kappa  Accuracy SD  Kappa SD
+##   1         1      0.004        0.006   
+## 
+## </code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>gbm (boosting with trees) - good accuracy</li>
+</ol>
+<pre class="r"><code>set.seed(559)
+
+library(gbm)</code></pre>
+<pre><code>## Loading required package: survival
+## Loading required package: splines
+## 
+## Attaching package: 'survival'
+## 
+## The following object is masked from 'package:caret':
+## 
+##     cluster
+## 
+## Loading required package: parallel
+## Loaded gbm 2.1</code></pre>
+<pre class="r"><code>modelFit4 &lt;- train(training$classe ~ ., data=training, method=&quot;gbm&quot;, verbose=FALSE, trControl = trainControl(method = &quot;cv&quot;, number = 5))
+print(modelFit4$finalModel)</code></pre>
+<pre><code>## A gradient boosted model with multinomial loss function.
+## 150 iterations were performed.
+## There were 52 predictors of which 41 had non-zero influence.</code></pre>
+<pre class="r"><code>modelFit4</code></pre>
+<pre><code>## Stochastic Gradient Boosting 
+## 
+## 14718 samples
+##    52 predictor
+##     5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (5 fold) 
+## 
+## Summary of sample sizes: 11775, 11773, 11775, 11775, 11774 
+## 
+## Resampling results across tuning parameters:
+## 
+##   interaction.depth  n.trees  Accuracy  Kappa  Accuracy SD  Kappa SD
+##   1                   50      0.8       0.7    0.008        0.011   
+##   1                  100      0.8       0.8    0.006        0.008   
+##   1                  150      0.9       0.8    0.004        0.006   
+##   2                   50      0.9       0.8    0.003        0.004   
+##   2                  100      0.9       0.9    0.003        0.004   
+##   2                  150      0.9       0.9    0.003        0.004   
+##   3                   50      0.9       0.9    0.006        0.007   
+##   3                  100      0.9       0.9    0.004        0.005   
+##   3                  150      1.0       1.0    0.003        0.004   
+## 
+## Tuning parameter 'shrinkage' was held constant at a value of 0.1
+## Accuracy was used to select the optimal model using  the largest value.
+## The final values used for the model were n.trees = 150,
+##  interaction.depth = 3 and shrinkage = 0.1.</code></pre>
 <p><em>List of top 20 most important variables</em></p>
 <pre class="r"><code>varImp(modelFit, scale = FALSE) </code></pre>
 <pre><code>## rf variable importance
@@ -147,30 +266,30 @@ finMod</code></pre>
 ##   only 20 most important variables shown (out of 52)
 ## 
 ##                      Overall
-## roll_belt               1537
-## pitch_forearm            938
-## yaw_belt                 859
-## pitch_belt               697
-## magnet_dumbbell_z        675
-## magnet_dumbbell_y        660
-## roll_forearm             633
-## accel_dumbbell_y         352
-## accel_forearm_x          281
-## roll_dumbbell            274
-## magnet_dumbbell_x        270
-## magnet_belt_z            251
-## magnet_forearm_z         227
-## accel_dumbbell_z         220
-## total_accel_dumbbell     217
-## accel_belt_z             217
-## magnet_belt_y            216
-## gyros_belt_z             190
-## yaw_arm                  187
-## magnet_belt_x            173</code></pre>
+## roll_belt               1467
+## pitch_forearm            902
+## yaw_belt                 870
+## magnet_dumbbell_z        692
+## pitch_belt               667
+## magnet_dumbbell_y        662
+## roll_forearm             637
+## accel_dumbbell_y         358
+## roll_dumbbell            289
+## accel_forearm_x          287
+## magnet_dumbbell_x        278
+## magnet_belt_z            259
+## accel_belt_z             235
+## accel_dumbbell_z         235
+## magnet_forearm_z         229
+## magnet_belt_y            213
+## total_accel_dumbbell     204
+## yaw_arm                  183
+## gyros_belt_z             181
+## magnet_belt_x            178</code></pre>
 </div>
 <div id="out-of-sample-error" class="section level2">
 <h2>Out of Sample Error</h2>
-<p>Since we created a validation set, we can run our model against the validation set to check accuracy. We can then use these result to further refine our model prior to running it <strong>one time only</strong> on the test dataset.</p>
+<p>The out of sample error is the error rate you get when you run your predicted model on a new data set. Since I created a validation set, I can run our model against the validation set to check accuracy. I can then use these result to further refine the model prior to running it <strong>one time only</strong> on the test dataset.</p>
 <p><em>Run predcition on validation data and test accuracy</em></p>
 <pre class="r"><code>pred2 &lt;- predict(modelFit, validation)
 confusionMatrix(pred2, validation$classe)</code></pre>
@@ -178,37 +297,38 @@ confusionMatrix(pred2, validation$classe)</code></pre>
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1389    7    0    0    0
-##          B    4  941    1    0    1
-##          C    1    1  851    9    0
-##          D    0    0    3  794    4
-##          E    1    0    0    1  896
+##          A 1394    5    0    0    0
+##          B    0  942    3    0    0
+##          C    0    2  850    8    2
+##          D    0    0    2  796    3
+##          E    1    0    0    0  896
 ## 
 ## Overall Statistics
 ##                                         
-##                Accuracy : 0.993         
-##                  95% CI : (0.991, 0.995)
+##                Accuracy : 0.995         
+##                  95% CI : (0.992, 0.997)
 ##     No Information Rate : 0.284         
 ##     P-Value [Acc &gt; NIR] : &lt;2e-16        
 ##                                         
-##                   Kappa : 0.991         
+##                   Kappa : 0.993         
 ##  Mcnemar's Test P-Value : NA            
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity             0.996    0.992    0.995    0.988    0.994
-## Specificity             0.998    0.998    0.997    0.998    1.000
-## Pos Pred Value          0.995    0.994    0.987    0.991    0.998
-## Neg Pred Value          0.998    0.998    0.999    0.998    0.999
+## Sensitivity             0.999    0.993    0.994    0.990    0.994
+## Specificity             0.999    0.999    0.997    0.999    1.000
+## Pos Pred Value          0.996    0.997    0.986    0.994    0.999
+## Neg Pred Value          1.000    0.998    0.999    0.998    0.999
 ## Prevalence              0.284    0.194    0.174    0.164    0.184
-## Detection Rate          0.283    0.192    0.174    0.162    0.183
+## Detection Rate          0.284    0.192    0.173    0.162    0.183
 ## Detection Prevalence    0.285    0.193    0.176    0.163    0.183
-## Balanced Accuracy       0.997    0.995    0.996    0.993    0.997</code></pre>
+## Balanced Accuracy       0.999    0.996    0.996    0.994    0.997</code></pre>
+<p>The accuracy of the model on the validation data set is 99.3%, with a 95% confidence interval of (0.991, 0.995). Therefore the out of sample error rate on the validation data set is about 0.7%. With this error rate, no further refinements to the model are required.</p>
 </div>
 <div id="evalutation" class="section level2">
 <h2>Evalutation</h2>
-<p>Run the final model, which has been developed against the training data set and further refined against the validation data set. The final model will be run <strong>once</strong> against the test data set.</p>
+<p>Run the final model, which has been developed against the training data set and tested against the validation data set. The final model will be run <strong>once</strong> against the test data set.</p>
 <p><em>Run prediction on test data and test accuracy</em></p>
 <pre class="r"><code>file2 &lt;- &quot;http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;  #this is testing file
 download.file(file2,destfile=&quot;testData.csv&quot;)
@@ -218,7 +338,11 @@ testData &lt;- read.csv(&quot;./testData.csv&quot;)
 testData &lt;- testData[,c(8:11, 37:49, 60:68, 84:86, 102, 113:124, 140, 151:160)]
 #names(testData)
 
-pred3 &lt;- predict(modelFit, testData)</code></pre>
+pred3 &lt;- predict(modelFit, testData)
+pred3</code></pre>
+<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E</code></pre>
+<p>100% accuracy according to the submission portion of this project.</p>
 </div>
 
 

@@ -1,6 +1,6 @@
 ---
 title: "MachineLearningProject"
-date: "November 10, 2014"
+date: "November 21, 2014"
 output: 
    html_document:
      theme: cerulean
@@ -48,7 +48,7 @@ dim(training)
 
 ##Algorithm
 
-I tried several methods to model the training set but found that the **rpart** method had very low accuracy and the **treebag (bagging)** method .....  The model with the best accuracy (although with a much longer processing time) was the random forest model. I will use a random forest model with a 5-fold cross validation.   
+I tried several methods to model the training set (all with cross validation) but found that the **rpart** method had very low accuracy and the **treebag (bagging)** method and **gbm (boosting with trees)** method had very good accurarcy but still lower than random forest.  Since it is the model with the best accuracy (although with a much longer processing time), I will use a random forest model with a 5-fold cross validation.   
 
 1. random forest - excellent accuracy 
 ```{r}
@@ -63,47 +63,40 @@ finMod
 ```
 
 2. rpart - runs very quickly but has poor accuracy 
-```{r, echo=FALSE, eval=FALSE}
-set.seed(556)
+```{r}
+set.seed(557)
 
-modelFit <- train(training$classe ~ ., data=training, method="rpart", trControl = trainControl(method = "cv", number = 5))
-print(modelFit$finalModel)
+modelFit2 <- train(training$classe ~ ., data=training, method="rpart", trControl = trainControl(method = "cv", number = 5))
+print(modelFit2$finalModel)
 
-modelFit
+modelFit2
 
-library(rattle)
-library(rpart.plot)
-fancyRpartPlot(modelFit$finalModel)
 ```
 
 3. treebag (bagging) - great accuracy but lower than random forest
-```{r, echo=FALSE, eval=FALSE}
-set.seed(556)
+```{r}
+set.seed(558)
 
 library(ipred)
 library(plyr)
 
-modelFit <- train(training$classe ~ ., data=training, method="treebag", trControl = trainControl(method = "cv", number = 5))
-print(modelFit$finalModel)
+modelFit3 <- train(training$classe ~ ., data=training, method="treebag", trControl = trainControl(method = "cv", number = 5))
+print(modelFit3$finalModel)
 
-modelFit
+modelFit3
 
 ```
 
 4. gbm (boosting with trees) - good accuracy 
-```{r, echo=FALSE, eval=FALSE}
-set.seed(556)
+```{r}
+set.seed(559)
 
 library(gbm)
 
-modelFit <- train(training$classe ~ ., data=training, method="gbm", verbose=FALSE, trControl = trainControl(method = "cv", number = 5))
-print(modelFit$finalModel)
+modelFit4 <- train(training$classe ~ ., data=training, method="gbm", verbose=FALSE, trControl = trainControl(method = "cv", number = 5))
+print(modelFit4$finalModel)
 
-modelFit
-
-plot(modelFit$finalModel, uniform=TRUE, 
-      main="Classification Tree")
-text(modelFit$finalModel, use.n=TRUE, all=TRUE, cex=.8)
+modelFit4
 
 ```
 
@@ -113,7 +106,7 @@ varImp(modelFit, scale = FALSE)
 ```
 
 ##Out of Sample Error
-The out of sample error is the error rate you get when you run your predicted model on a new data set.  Since we created a validation set, we can run our model against the validation set to check accuracy.  We can then use these result to further refine our model prior to running it **one time only** on the test dataset.
+The out of sample error is the error rate you get when you run your predicted model on a new data set.  Since I created a validation set, I can run our model against the validation set to check accuracy.  I can then use these result to further refine the model prior to running it **one time only** on the test dataset.
 
 *Run predcition on validation data and test accuracy*
 ```{r}
@@ -137,4 +130,7 @@ testData <- testData[,c(8:11, 37:49, 60:68, 84:86, 102, 113:124, 140, 151:160)]
 #names(testData)
 
 pred3 <- predict(modelFit, testData)
+pred3
 ```
+
+100% accuracy according to the submission portion of this project.
